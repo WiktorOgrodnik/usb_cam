@@ -32,6 +32,17 @@ if(EXISTS ${swscale})
   message(STATUS "Found libswscale: ${swscale}")
 endif()
 
+# Remove once ROS 1 Noetic is deprecated
+if($ENV{ROS_VERSION} EQUAL 1)
+  find_package(catkin REQUIRED COMPONENTS
+    cv_bridge
+    roscpp
+    std_msgs
+    std_srvs
+    sensor_msgs
+    camera_info_manager)
+endif()
+
 ## Build the USB camera library
 ## Do not use ament_auto here so as to not link to rclcpp
 add_library(${PROJECT_NAME} SHARED
@@ -65,36 +76,58 @@ rclcpp_components_register_node(${PROJECT_NAME}_node
 )
 
 if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
-  ament_lint_auto_find_test_dependencies()
+  if($ENV{ROS_VERSION} EQUAL 2)
+    find_package(ament_lint_auto REQUIRED)
+    ament_lint_auto_find_test_dependencies()
 
-  find_package(ament_cmake_gtest)
+    find_package(ament_cmake_gtest)
 
-  # Unit tests
-  ament_add_gtest(test_usb_cam_utils
-    test/test_usb_cam_utils.cpp)
-  target_link_libraries(test_usb_cam_utils
-    ${PROJECT_NAME})
-  # Integration tests
-  ament_add_gtest(test_usb_cam_lib
-    test/test_usb_cam_lib.cpp)
-  target_link_libraries(test_usb_cam_lib
-    ${PROJECT_NAME})
+    # Unit tests
+    ament_add_gtest(test_usb_cam_utils
+      test/test_usb_cam_utils.cpp)
+    target_link_libraries(test_usb_cam_utils
+      ${PROJECT_NAME})
+    # Integration tests
+    ament_add_gtest(test_usb_cam_lib
+      test/test_usb_cam_lib.cpp)
+    target_link_libraries(test_usb_cam_lib
+      ${PROJECT_NAME})
+  endif()
 endif()
 
-install(
-  PROGRAMS scripts/show_image.py
-  DESTINATION lib/${PROJECT_NAME})
 
-install(TARGETS
-  ${PROJECT_NAME}
-  ${PROJECT_NAME}_node
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION lib
-)
-ament_auto_package(
-  INSTALL_TO_SHARE
-    launch
-    config
-)
+if($ENV{ROS_VERSION} EQUAL 1)
+  install(TARGETS ${PROJECT_NAME}_node ${PROJECT_NAME}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  )
+
+  ## Copy launch files
+  install(DIRECTORY launch/
+    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+    FILES_MATCHING PATTERN "*.launch"
+  )
+
+  install(DIRECTORY include/${PROJECT_NAME}/
+    DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+    FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
+  )
+else()
+  install(
+    PROGRAMS scripts/show_image.py
+    DESTINATION lib/${PROJECT_NAME})
+
+  install(TARGETS
+    ${PROJECT_NAME}
+    ${PROJECT_NAME}_node
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION lib
+  )
+
+  ament_auto_package(
+    INSTALL_TO_SHARE
+      launch
+      config
+  )
+endif()

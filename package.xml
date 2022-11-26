@@ -25,9 +25,9 @@
   <depend>builtin_interfaces</depend>
   <depend>image_transport</depend>
   <depend>image_transport_plugins</depend>
-  <depend>v4l-utils</depend>
-
+  <depend>libv4l-dev</depend>
   <depend>ffmpeg</depend>
+  <depend>libopencv-imgproc-dev</depend>
 
   <test_depend>ament_cmake_gtest</test_depend>
   <test_depend>ament_lint_auto</test_depend>
