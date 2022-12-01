@@ -26,40 +26,30 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
+#define CLEAR(x) memset(&(x), 0, sizeof(x))
 
-#define __STDC_CONSTANT_MACROS
-
-#include <unistd.h>
-#include <errno.h>
-#include <malloc.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/time.h>
-#include <sys/mman.h>
-#include <sys/ioctl.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
-#include <fcntl.h>              /* low-level i/o */
-
+extern "C" {
+#include <linux/videodev2.h>  // Defines V4L2 format constants
+#include <malloc.h>  // for memalign
+#include <sys/mman.h>  // for mmap
+#include <sys/stat.h>  // for stat
+#define __STDC_CONSTANT_MACROS  // Required for libavutil
 #include <libavutil/imgutils.h>
+#include <fcntl.h>  // for O_* constants
+}
 
+#include <chrono>
+#include <ctime>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
-#include <chrono>
 
 #include "rclcpp/rclcpp.hpp"
 
 #include "usb_cam/usb_cam.hpp"
 #include "usb_cam/conversions.hpp"
 #include "usb_cam/utils.hpp"
-
-
-#define CLEAR(x) memset(&(x), 0, sizeof(x))
 
 
 namespace usb_cam
