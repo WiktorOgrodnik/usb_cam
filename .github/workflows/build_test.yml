@@ -5,6 +5,7 @@ on:
     branches:
       - 'ros2/*'
       - 'ros2'
+      - '*'
 
 jobs:
   get_ros_distros:
