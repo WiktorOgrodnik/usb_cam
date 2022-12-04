@@ -70,8 +70,10 @@ if($ENV{ROS_VERSION} EQUAL 1)
   add_executable(${PROJECT_NAME}_node src/ros1/usb_cam_ros1_node.cpp)
   target_link_libraries(${PROJECT_NAME}_node
     ${PROJECT_NAME}
-    ${OpenCV_LIBS}
+    ${catkin_LIBRARIES}
   )
+  target_include_directories(${PROJECT_NAME}_node PUBLIC
+    ${catkin_INCLUDE_DIRS})
 else()
   ament_export_libraries(${PROJECT_NAME})
   
