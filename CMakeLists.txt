@@ -10,8 +10,19 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic -Werror)
 endif()
 
-find_package(ament_cmake_auto REQUIRED)
-ament_auto_find_build_dependencies()
+# Remove once ROS 1 Noetic is deprecated
+if($ENV{ROS_VERSION} EQUAL 1)
+  find_package(catkin REQUIRED COMPONENTS
+    cv_bridge
+    roscpp
+    std_msgs
+    std_srvs
+    sensor_msgs
+    camera_info_manager)
+else()
+  find_package(ament_cmake_auto REQUIRED)
+  ament_auto_find_build_dependencies()
+endif()
 
 find_package(OpenCV REQUIRED)
 
@@ -32,17 +43,6 @@ if(EXISTS ${swscale})
   message(STATUS "Found libswscale: ${swscale}")
 endif()
 
-# Remove once ROS 1 Noetic is deprecated
-if($ENV{ROS_VERSION} EQUAL 1)
-  find_package(catkin REQUIRED COMPONENTS
-    cv_bridge
-    roscpp
-    std_msgs
-    std_srvs
-    sensor_msgs
-    camera_info_manager)
-endif()
-
 ## Build the USB camera library
 ## Do not use ament_auto here so as to not link to rclcpp
 add_library(${PROJECT_NAME} SHARED
@@ -59,21 +59,26 @@ target_link_libraries(${PROJECT_NAME}
   ${swscale_LIBRARIES}
   ${OpenCV_LIBRARIES})
 
-ament_export_libraries(${PROJECT_NAME})
+# Remove once ROS 1 Noetic is deprecated
+if($ENV{ROS_VERSION} EQUAL 1)
 
-## Declare a ROS 2 composible node as a library
-ament_auto_add_library(${PROJECT_NAME}_node SHARED
-  src/usb_cam_node.cpp
-)
-
-target_link_libraries(${PROJECT_NAME}_node
-  ${PROJECT_NAME})
-
-## Use node to generate an executable
-rclcpp_components_register_node(${PROJECT_NAME}_node
-  PLUGIN "usb_cam::UsbCamNode"
-  EXECUTABLE ${PROJECT_NAME}_node_exe
-)
+else()
+  ament_export_libraries(${PROJECT_NAME})
+  
+  ## Declare a ROS 2 composible node as a library
+  ament_auto_add_library(${PROJECT_NAME}_node SHARED
+    src/usb_cam_node.cpp
+  )
+  
+  target_link_libraries(${PROJECT_NAME}_node
+    ${PROJECT_NAME})
+  
+  ## Use node to generate an executable
+  rclcpp_components_register_node(${PROJECT_NAME}_node
+    PLUGIN "usb_cam::UsbCamNode"
+    EXECUTABLE ${PROJECT_NAME}_node_exe
+  )
+endif()
 
 if(BUILD_TESTING)
   if($ENV{ROS_VERSION} EQUAL 2)
