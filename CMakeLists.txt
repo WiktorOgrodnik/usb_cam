@@ -51,6 +51,7 @@ add_library(${PROJECT_NAME} SHARED
 
 target_include_directories(${PROJECT_NAME} PUBLIC
   "include"
+  ${OpenCV_INCLUDE_DIRS}
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -61,7 +62,16 @@ target_link_libraries(${PROJECT_NAME}
 
 # Remove once ROS 1 Noetic is deprecated
 if($ENV{ROS_VERSION} EQUAL 1)
+  catkin_package(
+    INCLUDE_DIRS include
+    LIBRARIES ${PROJECT_NAME}
+  )
 
+  add_executable(${PROJECT_NAME}_node src/ros1/usb_cam_ros1_node.cpp)
+  target_link_libraries(${PROJECT_NAME}_node
+    ${PROJECT_NAME}
+    ${OpenCV_LIBS}
+  )
 else()
   ament_export_libraries(${PROJECT_NAME})
   
