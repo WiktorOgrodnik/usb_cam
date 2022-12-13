@@ -76,15 +76,15 @@ if($ENV{ROS_VERSION} EQUAL 1)
     ${catkin_INCLUDE_DIRS})
 else()
   ament_export_libraries(${PROJECT_NAME})
-  
+
   ## Declare a ROS 2 composible node as a library
   ament_auto_add_library(${PROJECT_NAME}_node SHARED
-    src/usb_cam_node.cpp
+    src/ros2/usb_cam_node.cpp
   )
-  
+
   target_link_libraries(${PROJECT_NAME}_node
     ${PROJECT_NAME})
-  
+
   ## Use node to generate an executable
   rclcpp_components_register_node(${PROJECT_NAME}_node
     PLUGIN "usb_cam::UsbCamNode"
