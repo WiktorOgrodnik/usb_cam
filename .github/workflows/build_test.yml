@@ -98,8 +98,10 @@ jobs:
           name: colcon-logs-${{ matrix.ros_distro }}
           path: ${{ steps.build_and_test_step.outputs.ros-workspace-directory-name }}/log
         if: always()
+        continue-on-error: true
       - uses: actions/upload-artifact@v1
         with:
           name: lcov-logs-${{ matrix.ros_distro }}
           path: ${{ steps.build_and_test_step.outputs.ros-workspace-directory-name }}/lcov
         if: always()
+        continue-on-error: true

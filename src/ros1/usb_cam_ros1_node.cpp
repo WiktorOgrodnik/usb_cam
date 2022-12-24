@@ -34,6 +34,7 @@
 #include "std_srvs/Empty.h"
 
 #include "usb_cam/usb_cam.hpp"
+#include "usb_cam/utils.hpp"
 
 
 namespace usb_cam
@@ -67,6 +68,8 @@ public:
 
   bool service_start_cap(std_srvs::Empty::Request & req, std_srvs::Empty::Response & res)
   {
+    (void)req;
+    (void)res;
     cam_.start_capturing();
     return true;
   }
@@ -74,6 +77,8 @@ public:
 
   bool service_stop_cap(std_srvs::Empty::Request & req, std_srvs::Empty::Response & res)
   {
+    (void)req;
+    (void)res;
     cam_.stop_capturing();
     return true;
   }
@@ -138,24 +143,24 @@ public:
       image_width_, image_height_, io_method_name_.c_str(), pixel_format_name_.c_str(), framerate_);
 
     // set the IO method
-    UsbCam::io_method io_method = UsbCam::io_method_from_string(io_method_name_);
-    if (io_method == UsbCam::IO_METHOD_UNKNOWN) {
+    io_method_t io_method = usb_cam::utils::io_method_from_string(io_method_name_);
+    if (io_method == io_method_t::IO_METHOD_UNKNOWN) {
       ROS_FATAL("Unknown IO method '%s'", io_method_name_.c_str());
       node_.shutdown();
       return;
     }
 
     // set the pixel format
-    UsbCam::pixel_format pixel_format = UsbCam::pixel_format_from_string(pixel_format_name_);
-    if (pixel_format == UsbCam::PIXEL_FORMAT_UNKNOWN) {
+    pixel_format_t pixel_format = usb_cam::utils::pixel_format_from_string(pixel_format_name_);
+    if (pixel_format == pixel_format_t::PIXEL_FORMAT_UNKNOWN) {
       ROS_FATAL("Unknown pixel format '%s'", pixel_format_name_.c_str());
       node_.shutdown();
       return;
     }
 
     // set the color format
-    UsbCam::color_format color_format = UsbCam::color_format_from_string(color_format_name_);
-    if (color_format == UsbCam::COLOR_FORMAT_UNKNOWN) {
+    color_format_t color_format = usb_cam::utils::color_format_from_string(color_format_name_);
+    if (color_format == color_format_t::COLOR_FORMAT_UNKNOWN) {
       ROS_FATAL("Unknown color format '%s'", color_format_name_.c_str());
       node_.shutdown();
       return;
@@ -222,8 +227,24 @@ public:
 
   bool take_and_send_image()
   {
-    // grab the image
-    cam_.grab_image(&img_);
+    // grab the new image
+    auto new_image = cam_.get_image();
+
+    // fill in the image message
+    img_.header.stamp.sec = new_image->stamp.tv_sec;
+    img_.header.stamp.nsec = new_image->stamp.tv_nsec;
+
+    // Only resize if required
+    if (img_.data.size() != static_cast<size_t>(new_image->step * new_image->height)) {
+      img_.width = new_image->width;
+      img_.height = new_image->height;
+      img_.encoding = new_image->encoding;
+      img_.step = new_image->step;
+      img_.data.resize(new_image->step * new_image->height);
+    }
+
+    // Fill in image data
+    memcpy(&img_.data[0], new_image->image, img_.data.size());
 
     // grab the camera info
     sensor_msgs::CameraInfoPtr ci(new sensor_msgs::CameraInfo(cinfo_->getCameraInfo()));
