@@ -1,14 +1,7 @@
 name: ROS2 CI
 
 permissions: write-all
-
-on:
-  push:
-  workflow_dispatch:
-  pull_request:
-    branches:
-      - 'ros2/*'
-      - 'ros2'
+on: [push, workflow_dispatch, repository_dispatch]
 
 jobs:
   test_environment:
@@ -51,10 +44,9 @@ jobs:
         # Use antmicro's Renode linux distro that supports
         # vivid (virtual device emulating a v4l2 device)
         # https://github.com/antmicro/renode-linux-runner-action
-        uses: flynneva/renode-linux-runner-action@main
+        uses: antmicro/renode-linux-runner-action@main
         with:
           shared-dir: ./
-          image: https://github.com/antmicro/renode-linux-runner-action/releases/download/v0/images.tar.xz
           renode-run: |
             ls /dev | grep video
             source /opt/ros/${{ matrix.ros_distribution }}/setup.bash
