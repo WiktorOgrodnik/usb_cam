@@ -3,6 +3,8 @@ name: ROS2 CI
 permissions: write-all
 
 on:
+  push:
+  workflow_dispatch:
   pull_request:
     branches:
       - 'ros2/*'
